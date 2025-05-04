@@ -1,38 +1,47 @@
-document.addEventListener('keydown', function(event) {
-    const active = document.activeElement;
-    const isTextarea = active && active.tagName === "TEXTAREA";
+function overrideEnterBehavior() {
+    const textarea = document.querySelector("textarea");
   
-    // Cmd/Ctrl + Enter → 送信
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-      if (isTextarea) {
+    if (!textarea) return;
+  
+    textarea.addEventListener("keydown", function (event) {
+      // Cmd/Ctrl + Enter → 本来の送信動作
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        const submitButton = document.querySelector("button[data-testid='send-button'], button[type='submit']");
-        if (submitButton) {
-          submitButton.click();
+        const submit = document.querySelector("button[data-testid='send-button'], button[type='submit']");
+        if (submit) {
+          submit.click();
         }
+        return;
       }
-      return;
-    }
   
-    // Shift+Enter → 無効化（送信も改行もしない）
-    if (event.key === "Enter" && event.shiftKey) {
-      if (isTextarea) {
+      // Shift+Enter → 無効化
+      if (event.key === "Enter" && event.shiftKey) {
         event.preventDefault();
+        return;
       }
-      return;
-    }
   
-    // Enter単体 → 改行のみ（送信禁止）
-    if (event.key === "Enter") {
-      if (isTextarea) {
+      // Enter単体 → 改行だけ挿入、送信完全封印
+      if (event.key === "Enter") {
+        event.stopImmediatePropagation(); // ←これが超重要
         event.preventDefault();
-        const start = active.selectionStart;
-        const end = active.selectionEnd;
-        const value = active.value;
-        active.value = value.slice(0, start) + "\n" + value.slice(end);
-        active.selectionStart = active.selectionEnd = start + 1;
+  
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+  
+        textarea.value = value.slice(0, start) + "\n" + value.slice(end);
+        textarea.selectionStart = textarea.selectionEnd = start + 1;
       }
-      return;
+    }, true); // キャプチャ + ネイティブで反応
+  }
+  
+  // DOM読み込みを監視して textarea 出現後にフックする
+  const observer = new MutationObserver(() => {
+    const textarea = document.querySelector("textarea");
+    if (textarea) {
+      overrideEnterBehavior();
+      observer.disconnect(); // 一度フックできたら監視終了
     }
-  }, true); // ←←← キャプチャフェーズでイベントを処理！
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
   
