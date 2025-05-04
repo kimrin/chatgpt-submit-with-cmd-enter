@@ -1,42 +1,38 @@
-function overrideChatGPTInput() {
+function overrideChatGPT() {
     const textarea = document.querySelector("textarea");
-    const form = textarea?.closest("form");
+    const submitButton = document.querySelector("button[data-testid='send-button'], button[type='submit']");
   
-    if (!textarea || !form) return;
+    if (!textarea || !submitButton) return;
   
-    // Step 1: フォーム送信を完全に殺す
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return false;
-    }, true);
+    // 送信ボタンを物理的に無効にする（Enter単体では押せなくなる）
+    submitButton.disabled = true;
   
-    // Step 2: textareaのキーダウン処理をカスタマイズ
     textarea.addEventListener("keydown", function (event) {
       const isEnter = event.key === "Enter";
       const isCmdEnter = isEnter && (event.metaKey || event.ctrlKey);
       const isShiftEnter = isEnter && event.shiftKey;
       const isPlainEnter = isEnter && !event.metaKey && !event.ctrlKey && !event.shiftKey;
   
-      // Cmd/Ctrl + Enter → 明示的に送信ボタンをクリック
+      // Cmd/Ctrl + Enter → ボタンを一時的に有効にして送信
       if (isCmdEnter) {
         event.preventDefault();
-        const submitButton = document.querySelector("button[data-testid='send-button'], button[type='submit']");
-        if (submitButton) submitButton.click();
+        submitButton.disabled = false;
+        submitButton.click();
+        setTimeout(() => {
+          submitButton.disabled = true;
+        }, 100); // 送信後すぐ再び無効化
         return;
       }
   
-      // Shift+Enter → 無効化
+      // Shift + Enter → 封印
       if (isShiftEnter) {
         event.preventDefault();
-        event.stopImmediatePropagation();
         return;
       }
   
-      // Enterのみ → 改行挿入（送信は完全ブロック済み）
+      // Enter単体 → 改行
       if (isPlainEnter) {
         event.preventDefault();
-        event.stopImmediatePropagation();
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const value = textarea.value;
@@ -47,11 +43,12 @@ function overrideChatGPTInput() {
     }, true);
   }
   
-  // textareaが出てくるのを監視してフックする
+  // textareaと送信ボタンが出てくるのを監視
   const observer = new MutationObserver(() => {
     const textarea = document.querySelector("textarea");
-    if (textarea) {
-      overrideChatGPTInput();
+    const button = document.querySelector("button[data-testid='send-button'], button[type='submit']");
+    if (textarea && button) {
+      overrideChatGPT();
       observer.disconnect();
     }
   });
