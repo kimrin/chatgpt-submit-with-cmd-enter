@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Submit Modifier",
+  "description": "Change Enter key behavior to Cmd+Enter for submit on ChatGPT.",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://chatgpt.com/*",
+        "*://chat.openai.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}
