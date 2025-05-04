@@ -1,6 +1,6 @@
 document.addEventListener('keydown', function(event) {
-    // CmdキーとEnterキーの組み合わせで送信
-    if (event.key === "Enter" && event.metaKey) {
+    // Cmdキー（またはCtrlキー）とEnterキーの組み合わせで送信
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault(); // デフォルトのEnter挙動を防ぐ
   
       const textarea = document.activeElement;
@@ -14,7 +14,7 @@ document.addEventListener('keydown', function(event) {
     }
     
     // Enter単体では改行のみ
-    if (event.key === "Enter" && !event.metaKey) {
+    if (event.key === "Enter" && !event.metaKey && !event.ctrlKey) {
       const textarea = document.activeElement;
       if (textarea && textarea.tagName === "TEXTAREA") {
         // 改行のみ実行
