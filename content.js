@@ -1,15 +1,12 @@
 document.addEventListener('keydown', function(event) {
-    // アクティブ要素がtextareaかどうかを確認（安全性のため）
     const active = document.activeElement;
-  
     const isTextarea = active && active.tagName === "TEXTAREA";
   
-    // CmdまたはCtrl + Enter で送信
+    // Cmd/Ctrl + Enter → 通常送信（= 本来のEnter）
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       if (isTextarea) {
-        event.preventDefault(); // デフォルト送信キャンセル
+        event.preventDefault();
   
-        // 明示的に submit ボタンを探してクリック
         const submitButton = document.querySelector("button[data-testid='send-button'], button[type='submit']");
         if (submitButton) {
           submitButton.click();
@@ -17,14 +14,23 @@ document.addEventListener('keydown', function(event) {
           console.warn("送信ボタンが見つかりませんでした");
         }
       }
+      return;
     }
   
-    // Enter 単体では改行（送信しない）
-    if (event.key === "Enter" && !event.metaKey && !event.ctrlKey) {
+    // Shift + Enter → 本来のEnterだが、今回は無効にする
+    if (event.key === "Enter" && event.shiftKey) {
       if (isTextarea) {
-        event.preventDefault(); // 送信を防止して改行だけ挿入
+        event.preventDefault(); // 無効化
+        console.log("Shift+Enterは無効化されています");
+      }
+      return;
+    }
   
-        // カーソル位置に改行を挿入
+    // Enter単体 → 改行として動作させる（本来のShift+Enterの挙動）
+    if (event.key === "Enter") {
+      if (isTextarea) {
+        event.preventDefault();
+  
         const start = active.selectionStart;
         const end = active.selectionEnd;
         const value = active.value;
@@ -32,6 +38,7 @@ document.addEventListener('keydown', function(event) {
         active.value = value.substring(0, start) + "\n" + value.substring(end);
         active.selectionStart = active.selectionEnd = start + 1;
       }
+      return;
     }
   });
   
