@@ -2,43 +2,37 @@ document.addEventListener('keydown', function(event) {
     const active = document.activeElement;
     const isTextarea = active && active.tagName === "TEXTAREA";
   
-    // Cmd/Ctrl + Enter → 通常送信（= 本来のEnter）
+    // Cmd/Ctrl + Enter → 送信
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       if (isTextarea) {
         event.preventDefault();
-  
         const submitButton = document.querySelector("button[data-testid='send-button'], button[type='submit']");
         if (submitButton) {
           submitButton.click();
-        } else {
-          console.warn("送信ボタンが見つかりませんでした");
         }
       }
       return;
     }
   
-    // Shift + Enter → 本来のEnterだが、今回は無効にする
+    // Shift+Enter → 無効化（送信も改行もしない）
     if (event.key === "Enter" && event.shiftKey) {
       if (isTextarea) {
-        event.preventDefault(); // 無効化
-        console.log("Shift+Enterは無効化されています");
+        event.preventDefault();
       }
       return;
     }
   
-    // Enter単体 → 改行として動作させる（本来のShift+Enterの挙動）
+    // Enter単体 → 改行のみ（送信禁止）
     if (event.key === "Enter") {
       if (isTextarea) {
         event.preventDefault();
-  
         const start = active.selectionStart;
         const end = active.selectionEnd;
         const value = active.value;
-  
-        active.value = value.substring(0, start) + "\n" + value.substring(end);
+        active.value = value.slice(0, start) + "\n" + value.slice(end);
         active.selectionStart = active.selectionEnd = start + 1;
       }
       return;
     }
-  });
+  }, true); // ←←← キャプチャフェーズでイベントを処理！
   
